@@ -16,6 +16,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
+          inputDecorationTheme:
+              const InputDecorationTheme(border: OutlineInputBorder()),
           // This is the theme of your application.
           //
           // TRY THIS: Try running your application with "flutter run". You'll see
@@ -31,17 +33,22 @@ class MyApp extends StatelessWidget {
           //
           // This works for code too, not just values: Most code changes can be
           // tested with just a hot reload.
-          colorScheme:
-              ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 3, 255, 82)),
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 3, 255, 82)),
           useMaterial3: true,
         ),
         home: const HomeScreen());
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +57,11 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {},
+          onPressed: () async {
+            final result = await Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) =>_AddStudentFrom()));
+            if (result != null) setState(() {});
+          },
           label: const Row(
             children: [
               Icon(Icons.add),
@@ -62,6 +73,7 @@ class HomeScreen extends StatelessWidget {
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
               return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 84),
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
                     return _Student(data: snapshot.data![index]);
@@ -72,6 +84,86 @@ class HomeScreen extends StatelessWidget {
               ));
             }
           }),
+    );
+  }
+}
+
+class _AddStudentFrom extends StatelessWidget {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _courseController = TextEditingController();
+  final TextEditingController _scoreController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add New Student'),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          try {
+            final newStudentData = await svaeStudent(
+                _firstNameController.text,
+                _lastNameController.text,
+                _courseController.text,
+                int.parse(_scoreController.text));
+            // ignore: use_build_context_synchronously
+            Navigator.pop(context, newStudentData);
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        },
+        label: const Row(
+          children: [
+            Icon(
+              Icons.check,
+            ),
+            Text('Save'),
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _firstNameController,
+              decoration: const InputDecoration(
+                label: Text('First Name'),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(
+                label: Text('Last Name'),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _courseController,
+              decoration: const InputDecoration(
+                label: Text('Course'),
+              ),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _scoreController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                label: Text('Score'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -95,62 +187,61 @@ class _Student extends StatelessWidget {
           ),
         ],
       ),
-      child: Container(
-          child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            ),
-            child: Text(
-              data.firsname.characters.first,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w900,
-                fontSize: 24,
-              ),
-            ),
-          ),
-          const SizedBox(
-            width: 8,
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
               children: [
-                Text(data.firsname + '' + data.lastename),
-                const SizedBox(
-                  height: 8,
-                ),
-                Container(
-                    padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        color: Colors.grey.shade200),
-                    child: Text(
-                      data.course,
-                      style: const TextStyle(fontSize: 10),
-                    )),
-              ],
-            ),
+      Container(
+        width: 64,
+        height: 64,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        ),
+        child: Text(
+          data.firsname.characters.first,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w900,
+            fontSize: 24,
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.bar_chart_rounded, color: Colors.grey.shade400),
-              Text(
-                data.score.toString(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+        ),
+      ),
+      const SizedBox(
+        width: 8,
+      ),
+      Expanded(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(data.firsname + '' + data.lastename),
+            const SizedBox(
+              height: 8,
+            ),
+            Container(
+                padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    color: Colors.grey.shade200),
+                child: Text(
+                  data.course,
+                  style: const TextStyle(fontSize: 10),
+                )),
+          ],
+        ),
+      ),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.bar_chart_rounded, color: Colors.grey.shade400),
+          Text(
+            data.score.toString(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
-      )),
+      ),
+              ],
+            ),
     );
   }
 }

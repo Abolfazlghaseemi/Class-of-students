@@ -44,3 +44,17 @@ Future<List<StudentData>> getStudent() async {
   print(students.toString());
   return students;
 }
+
+Future<StudentData>svaeStudent(String firsname, String last_name, String course, int score) async {
+  final response = await HttpClient.instance.post('experts/student', data: {
+    "first_name": firsname,
+    "last_name": last_name,
+    "course": course,
+    "score": score,
+  });
+  if (response.statusCode == 200) {
+    return StudentData.fromjson(response.data);
+  } else {
+    throw Exception();
+  }
+}
